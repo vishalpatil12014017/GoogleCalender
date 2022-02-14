@@ -1,20 +1,15 @@
-const { google } = require('googleapis');
-require('dotenv').config();
-
-// Provide the required configuration
-const CREDENTIALS = JSON.parse(process.env.CREDENTIALS);
-const calendarId = process.env.CALENDAR_ID;
-
-// Google calendar API settings
-const SCOPES = 'https://www.googleapis.com/auth/calendar';
-const calendar = google.calendar({ version: "v3" });
-
-const auth = new google.auth.JWT(
-    CREDENTIALS.client_email,
-    null,
-    CREDENTIALS.private_key,
-    SCOPES
+const express = require("express");
+const db = require("./models");
+const app = express();
+const port = process.env.PORT || 3535;
+app.use(express.json());
+app.use(
+    express.urlencoded({
+        extended: true,
+    })
 );
+db.sequelize.sync();
+require("./routes/calender.routes")(app);
 
 
 // Your TIMEOFFSET Offset
@@ -55,108 +50,6 @@ const dateTimeForCalander = () => {
     }
 };
 
-// Insert new event to Google Calendar
-const insertEvent = async (event) => {
-    try {
-        let response = await calendar.events.insert({
-            auth,
-            calendarId: calendarId,
-            resource: event
-        });
-
-        if (response['status'] == 200 && response['statusText'] === 'OK') {
-            return 1;
-        } else {
-            return 0;
-        }
-    } catch (error) {
-        console.log(`Error at insertEvent --> ${error}`);
-        return 0;
-    }
-};
-
-// Get all the events between two dates
-const getEvents = async (dateTimeStart, dateTimeEnd) => {
-
-    try {
-        let response = await calendar.events.list({
-            auth: auth,
-            calendarId: calendarId,
-            timeMin: dateTimeStart,
-            timeMax: dateTimeEnd,
-            timeZone: 'Asia/Kolkata'
-        });
-        let items = response['data']['items'];
-        return items;
-    } catch (error) {
-        console.log(`Error at getEvents --> ${error}`);
-        return 0;
-    }
-};
-
-// Delete an event from eventID
-const deleteEvent = async (eventId) => {
-    try {
-        let response = await calendar.events.delete({
-            auth: auth,
-            calendarId: calendarId,
-            eventId: eventId
-        });
-
-        if (response.data === '') {
-            return "deleted successfully";
-        } else {
-            return 0;
-        }
-    } catch (error) {
-        console.log(`Error at deleteEvent --> ${error}`);
-        return 0;
-    }
-};
-
-
-//insert event
-let dateTime = dateTimeForCalander();
-
-// Event for Google Calendar
-let event = {
-    'summary': `This is the first meeting.`,
-    'description': `This is the description.`,
-    'start': {
-        'dateTime': dateTime['start'],
-        'timeZone': 'Asia/Kolkata'
-    },
-    'end': {
-        'dateTime': dateTime['end'],
-        'timeZone': 'Asia/Kolkata'
-    }
-};
-
-// insertEvent(event)
-//     .then((res) => {
-//         console.log(res);
-//     })
-//     .catch((err) => {
-//         console.log(err);
-//     });
-//find all events 
-let start = '2022-02-07T00:00:00.000Z';
-let end = '2022-02-12T00:00:00.000Z';
-
-getEvents(start, end)
-    .then((res) => {
-        console.log(res);
-    })
-    .catch((err) => {
-        console.log(err);
-    });
-
-//delete
-let eventId = '3kkg1mk6lthl6serogh8ila57c';
-// deleteEvent(eventId)
-//     .then((res) => {
-//         console.log(res);
-//     })
-//     .catch((err) => {
-//         console.log(err);
-//     });
+app.listen(port, () => {
+    console.log(`listening to ${port}`)
+})
