@@ -19,6 +19,14 @@ module.exports = (app) => {
   //http://localhost:3535/api/calender/
   router.delete("/:id", calender.delete);
 
+  //find all booked slots
+   //http://localhost:3535/api/calender/slots
+   router.get("/slots", calender.findAllBookedSlots);
+
+     //find all available slots
+   //http://localhost:3535/api/calender/slots
+   router.get("/Availableslots", calender.findAllAvailableSlots);
+
   app.use("/api/calender", router);
   
 };
